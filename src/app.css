@@ -1,0 +1,42 @@
+@import 'tailwindcss';
+
+@layer base {
+	* {
+		box-sizing: border-box;
+	}
+
+	html,
+	body {
+		height: 100%;
+		overflow: hidden;
+	}
+
+	body {
+		background-color: #1a1a2e;
+		color: #e0e0e0;
+		font-family: 'Courier New', monospace;
+	}
+}
+
+@layer utilities {
+	.pixel-font {
+		font-family: 'Courier New', monospace;
+		letter-spacing: 0.05em;
+	}
+
+	.canvas-cursor-pencil {
+		cursor: crosshair;
+	}
+
+	.canvas-cursor-fill {
+		cursor: cell;
+	}
+
+	.canvas-cursor-eraser {
+		cursor: default;
+	}
+
+	.canvas-cursor-pick {
+		cursor: crosshair;
+	}
+}

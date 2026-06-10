@@ -24,6 +24,15 @@
 		}
 	}
 
+	function mcSlotColor(slot: number): string {
+		switch (slot) {
+			case 0: return C64_PALETTE[editor.bgColor].hex;
+			case 1: return C64_PALETTE[editor.mc1Color].hex;
+			case 2: return C64_PALETTE[editor.mc2Color].hex;
+			default: return '#888';
+		}
+	}
+
 	const TARGET_LABELS: { id: ColorTarget; label: string; title: string }[] = [
 		{ id: 'fg', label: 'FG', title: 'Foreground / draw color' },
 		{ id: 'bg', label: 'BG', title: 'Background color' },
@@ -134,7 +143,7 @@
 					class="flex items-center gap-2 px-2 py-1 rounded text-xs pixel-font border transition-colors {editor.mcDrawSlot === slot ? 'border-yellow-400 bg-yellow-900/20 text-yellow-300' : 'border-gray-600 text-gray-400 hover:border-gray-400'}"
 					onclick={() => (editor.mcDrawSlot = slot)}
 				>
-					<div class="w-4 h-4 rounded" style="background: {slot === 0 ? C64_PALETTE[editor.bgColor].hex : slot === 1 ? C64_PALETTE[editor.mc1Color].hex : slot === 2 ? C64_PALETTE[editor.mc2Color].hex : '#888'}; border: 1px solid #666"></div>
+					<div class="w-4 h-4 rounded" style="background: {mcSlotColor(slot)}; border: 1px solid #666"></div>
 					Slot {slot} {['(BG)','(C1)','(C2)','(C3)'][slot]}
 				</button>
 			{/each}

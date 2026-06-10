@@ -121,7 +121,7 @@
 	<div class="flex flex-col gap-1">
 		<button
 			class="text-xs pixel-font px-2 py-1 bg-gray-800 hover:bg-gray-700 border border-gray-600 rounded text-gray-300 text-left"
-			onclick={() => editor.fillCanvas(editor.fgColor)}
+			onclick={() => editor.fillCanvas(editor.mode === 'multicolor' ? editor.mcDrawSlot : editor.fgColor)}
 			title="Fill entire canvas with foreground color"
 		>Fill with FG</button>
 		<button

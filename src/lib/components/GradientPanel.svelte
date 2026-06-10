@@ -24,15 +24,42 @@
 			const colorIdx = gradient[gi];
 			const startY = gi * linesPerColor;
 			const endY = gi === gradient.length - 1 ? h : startY + linesPerColor;
-			for (let y = startY; y < endY; y++) {
-				for (let x = 0; x < w; x++) {
-					if (editor.mode === 'hires') {
-						// In hires: set cell color to have fg = colorIdx
-						const cellX = Math.floor(x / 8);
-						const cellY = Math.floor(y / 8);
+
+			if (editor.mode === 'hires') {
+				// Update cell colors once per cell (not per pixel) for the covered rows
+				const startCellY = Math.floor(startY / 8);
+				const endCellY = Math.ceil(endY / 8);
+				for (let cellY = startCellY; cellY < endCellY; cellY++) {
+					for (let cellX = 0; cellX < 40; cellX++) {
 						editor.setCellColor(cellX, cellY, colorIdx, editor.bgColor);
-					} else {
-						editor.setPixel(x, y, editor.mode === 'multicolor' ? 1 : 1);
+					}
+				}
+				// Set pixels to foreground (1) so the gradient color is visible
+				for (let y = startY; y < endY; y++) {
+					for (let x = 0; x < w; x++) {
+						editor.setPixel(x, y, 1);
+					}
+				}
+			} else if (editor.mode === 'multicolor') {
+				// Update cell screen RAM: slot 1 (hi nibble) = gradient color
+				const startCellY = Math.floor(startY / 8);
+				const endCellY = Math.ceil(endY / 8);
+				for (let cellY = startCellY; cellY < endCellY; cellY++) {
+					for (let cellX = 0; cellX < 40; cellX++) {
+						editor.setCellColor(cellX, cellY, colorIdx, editor.mc2Color);
+					}
+				}
+				// Set pixels to slot 1 so the gradient color is visible
+				for (let y = startY; y < endY; y++) {
+					for (let x = 0; x < w; x++) {
+						editor.setPixel(x, y, 1);
+					}
+				}
+			} else {
+				// Sprite/charset: draw with the gradient palette color directly
+				for (let y = startY; y < endY; y++) {
+					for (let x = 0; x < w; x++) {
+						editor.setPixel(x, y, colorIdx);
 					}
 				}
 			}

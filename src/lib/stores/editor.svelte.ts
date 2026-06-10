@@ -32,6 +32,8 @@ const MAX_HISTORY = 50;
 interface HistoryEntry {
 	pixels: Uint8Array;
 	cellColors: Uint8Array;
+	spritePixels: Uint8Array;
+	charsetPixels: Uint8Array[];
 }
 
 // ── Editor state ─────────────────────────────────────────────────────────────
@@ -97,7 +99,9 @@ function createEditorStore() {
 	function pushHistory() {
 		const entry: HistoryEntry = {
 			pixels: new Uint8Array(pixels),
-			cellColors: new Uint8Array(cellColors)
+			cellColors: new Uint8Array(cellColors),
+			spritePixels: new Uint8Array(spritePixels),
+			charsetPixels: charsetPixels.map((c) => new Uint8Array(c))
 		};
 		// Truncate any redo history
 		history = history.slice(0, historyIndex + 1);
@@ -113,6 +117,8 @@ function createEditorStore() {
 			const entry = history[historyIndex];
 			pixels = new Uint8Array(entry.pixels);
 			cellColors = new Uint8Array(entry.cellColors);
+			spritePixels = new Uint8Array(entry.spritePixels);
+			charsetPixels = entry.charsetPixels.map((c) => new Uint8Array(c));
 			statusMessage = 'Undo';
 		}
 	}
@@ -123,6 +129,8 @@ function createEditorStore() {
 			const entry = history[historyIndex];
 			pixels = new Uint8Array(entry.pixels);
 			cellColors = new Uint8Array(entry.cellColors);
+			spritePixels = new Uint8Array(entry.spritePixels);
+			charsetPixels = entry.charsetPixels.map((c) => new Uint8Array(c));
 			statusMessage = 'Redo';
 		}
 	}
@@ -139,14 +147,19 @@ function createEditorStore() {
 		const h = modeInfo.height;
 		if (x < 0 || y < 0 || x >= w || y >= h) return;
 
-		const target = mode === 'sprite' ? spritePixels : pixels;
+		const val = colorValue !== undefined ? colorValue : getDrawColor();
 		const idx = y * w + x;
-		target[idx] = colorValue !== undefined ? colorValue : getDrawColor();
 
-		// Trigger reactivity
 		if (mode === 'sprite') {
+			spritePixels[idx] = val;
 			spritePixels = new Uint8Array(spritePixels);
+		} else if (mode === 'charset') {
+			// Normalize to 0/1 for charset; write into active character buffer
+			const buf = new Uint8Array(charsetPixels[activeCharIndex]);
+			buf[idx] = val !== 0 ? 1 : 0;
+			charsetPixels[activeCharIndex] = buf;
 		} else {
+			pixels[idx] = val;
 			pixels = new Uint8Array(pixels);
 		}
 	}
@@ -158,8 +171,16 @@ function createEditorStore() {
 	function floodFill(startX: number, startY: number, fillColor: number) {
 		const w = modeInfo.width;
 		const h = modeInfo.height;
-		const target = mode === 'sprite' ? spritePixels : pixels;
+		const target =
+			mode === 'sprite'
+				? spritePixels
+				: mode === 'charset'
+					? charsetPixels[activeCharIndex]
+					: pixels;
 		const targetColor = target[startY * w + startX];
+
+		// Normalize fill color to 0/1 for charset mode
+		if (mode === 'charset') fillColor = fillColor !== 0 ? 1 : 0;
 
 		if (targetColor === fillColor) return;
 
@@ -178,6 +199,8 @@ function createEditorStore() {
 
 		if (mode === 'sprite') {
 			spritePixels = new Uint8Array(target);
+		} else if (mode === 'charset') {
+			charsetPixels[activeCharIndex] = new Uint8Array(target);
 		} else {
 			pixels = new Uint8Array(target);
 		}
@@ -194,7 +217,12 @@ function createEditorStore() {
 		let cy = y0;
 		const w = modeInfo.width;
 		const h = modeInfo.height;
-		const target = mode === 'sprite' ? spritePixels : pixels;
+		const target =
+			mode === 'sprite'
+				? spritePixels
+				: mode === 'charset'
+					? charsetPixels[activeCharIndex]
+					: pixels;
 
 		while (true) {
 			if (cx >= 0 && cy >= 0 && cx < w && cy < h) target[cy * w + cx] = color;
@@ -206,6 +234,8 @@ function createEditorStore() {
 
 		if (mode === 'sprite') {
 			spritePixels = new Uint8Array(target);
+		} else if (mode === 'charset') {
+			charsetPixels[activeCharIndex] = new Uint8Array(target);
 		} else {
 			pixels = new Uint8Array(target);
 		}
@@ -259,8 +289,8 @@ function createEditorStore() {
 	function initCellColors() {
 		const arr = new Uint8Array(2000);
 		if (mode === 'hires') {
-			// screen RAM: (fg<<4)|bg per cell = (1<<4)|0 = 0x10
-			arr.fill(0x10, 0, 1000);
+			// screen RAM: (fg<<4)|bg per cell, reflecting current color selection
+			arr.fill((fgColor << 4) | bgColor, 0, 1000);
 		} else if (mode === 'multicolor') {
 			// screen RAM: (col1<<4)|col2, color RAM: col3
 			for (let i = 0; i < 1000; i++) arr[i] = (mc1Color << 4) | mc2Color;
@@ -272,6 +302,7 @@ function createEditorStore() {
 	/** Get the current pixels for a specific mode */
 	function getActivePixels(): Uint8Array {
 		if (mode === 'sprite') return spritePixels;
+		if (mode === 'charset') return charsetPixels[activeCharIndex];
 		return pixels;
 	}
 

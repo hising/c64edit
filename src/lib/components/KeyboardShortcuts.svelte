@@ -34,7 +34,9 @@
 		// Ctrl+N = New
 		if ((e.ctrlKey || e.metaKey) && key === 'n') {
 			e.preventDefault();
+			if (editor.isDirty && !confirm('Discard changes?')) return;
 			editor.clearCanvas();
+			editor.projectName = 'untitled';
 			editor.isDirty = false;
 			return;
 		}

@@ -25,15 +25,6 @@
 		return px * editor.zoom * editor.modeInfo.pixelAspect;
 	}
 
-	function canvasToPixel(cx: number): [number, number] {
-		const cellPx = editor.zoom * editor.modeInfo.pixelAspect;
-		const cellPy = editor.zoom;
-		return [
-			Math.floor(cx / cellPx),
-			Math.floor(cx / cellPy) // reused below with correct y
-		];
-	}
-
 	function canvasXYtoPixelXY(cx: number, cy: number): [number, number] {
 		const pixelW = editor.zoom * editor.modeInfo.pixelAspect;
 		const pixelH = editor.zoom;

@@ -67,8 +67,6 @@
 		const idx = cy * CHARS_PER_ROW + cx;
 		if (idx >= 0 && idx < TOTAL_CHARS) {
 			editor.activeCharIndex = idx;
-			// copy active char to sprite pixel canvas (as edit buffer)
-			const src = editor.charsetPixels[idx];
 			// switch mode to charset if not already
 			if (editor.mode !== 'charset') editor.mode = 'charset';
 		}

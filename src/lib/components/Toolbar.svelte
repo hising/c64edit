@@ -7,14 +7,20 @@
 	const modes = Object.values(MODES);
 
 	async function handleExportPng() {
-		const pixels = editor.getActivePixels();
-		const blob = await exportPng(
-			pixels,
-			editor.modeInfo.width,
-			editor.modeInfo.height,
-			editor.modeInfo.pixelAspect,
-			C64_PALETTE
-		);
+		const w = editor.modeInfo.width;
+		const h = editor.modeInfo.height;
+		const rawPixels = editor.getActivePixels();
+		// Resolve each pixel to its actual C64 palette index before rendering
+		const resolved = new Uint8Array(w * h);
+		for (let y = 0; y < h; y++) {
+			for (let x = 0; x < w; x++) {
+				const pv = rawPixels[y * w + x];
+				const cellX = Math.floor(x / (editor.modeInfo.pixelAspect === 2 ? 4 : 8));
+				const cellY = Math.floor(y / 8);
+				resolved[y * w + x] = editor.resolveColor(pv, cellX, cellY);
+			}
+		}
+		const blob = await exportPng(resolved, w, h, editor.modeInfo.pixelAspect, C64_PALETTE);
 		downloadBlob(blob, `${editor.projectName}.png`);
 		editor.statusMessage = 'Exported PNG';
 	}

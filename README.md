@@ -74,10 +74,10 @@ Requires **Node.js 24+**.
 
 ---
 
-## C64 Constraints Respected
+## C64 Constraints
 
-- **HiRes**: exactly 2 colors per 8×8 cell; any 2 of 16 palette colors
-- **Multicolor**: exactly 4 colors — 1 global background + 3 per cell (screen RAM × 2, color RAM × 1); pixels are 2× wide
+- **HiRes**: 320×200, 2 colors per 8×8 cell in screen RAM; per-cell palette editing is in progress
+- **Multicolor**: 160×200 (double-wide pixels), 4 colors — 1 global background + 3 per cell (screen RAM × 2, color RAM × 1); per-cell RAM editing is in progress
 - **Sprites**: 24×21 pixels; Koala export produces correct file layout
 - **Charset**: 8×8 per character, 256 definitions; exports as raw binary for CBM font tools
 - **Color palette**: faithful reproduction of the canonical C64 VICE/PEPTO palette
